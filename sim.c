@@ -137,21 +137,24 @@ int signExtend(int num){
     return num;
 }
 
-
-/*int wayInx(int addrs, cache_Type* cache)
+void printState(stateType *statePtr)
 {
-    int log = logbase(cache->blkSize, 2);
-    return (addrs>>log)%cache->assoc;
+	int i;
+	printf("\n@@@\nstate:\n");
+	printf("\tpc %d\n", statePtr->pc);
+	printf("\tmemory:\n");
+	for(i = 0; i < statePtr->numMemory; i++)
+	{
+		printf("\t\tmem[%d]=%d\n", i, statePtr->mem[i]);
+	}
+	printf("\tregisters:\n");
+	for(i = 0; i < NUMREGS; i++)
+	{
+		printf("\t\treg[%d]=%d\n", i, statePtr->reg[i]);
+	}
+	printf("end state\n");
 }
 
-int lineIdx (int addrs, cache_Type* cache, stateType* state)
-{
-    int log = logbase(cache->blkSize, 2);
-    return (addrs>>log)%(cache->blkSize*cache->numSets*cache->assoc);
-}*/
-
-void printState(stateType *statePtr){int i;printf("\n@@@\nstate:\n");printf("\tpc %d\n", statePtr->pc);printf("\tmemory:\n");for(i = 0; i < statePtr->numMemory; i++){printf("\t\tmem[%d]=%d\n", i, statePtr->mem[i]);}printf("\tregisters:\n");for(i = 0; i < NUMREGS; i++){printf("\t\treg[%d]=%d\n", i, statePtr->reg[i]);
-}printf("end state\n");}
 double logbase (double y, int b)
 {
     double lg;
@@ -187,7 +190,7 @@ int getSetOffset(int aluResult, cache_Type* cache)
 		mask|= 1 << i;
 	}
 	mask = mask << getBlockOffsetBits(cache);
-	return aluResult&mask;
+	return signExtend(aluResult&mask);
 }
 
 int getBlockOffset(int aluResult, cache_Type* cache)
@@ -197,7 +200,7 @@ int getBlockOffset(int aluResult, cache_Type* cache)
 	{
 		mask|= 1 << i;
 	}
-	return aluResult&mask;
+	return signExtend(aluResult&mask);
 }
 
 void searchCache(cache_Type* cache, int aluResult, stateType* state)
@@ -210,7 +213,6 @@ void searchCache(cache_Type* cache, int aluResult, stateType* state)
 
    // int blkNum = getBlockOffset(aluResult, cache);
     int setNum = getSetOffset(aluResult, cache);
-    int tag;
     set_Type* set = &(cache->cacheArray[setNum]);
     for(int i=0; i< set->set_size_in_blocks; i++)
     {
@@ -222,7 +224,7 @@ void searchCache(cache_Type* cache, int aluResult, stateType* state)
         //TODO check dirty bit
             printAction(aluResult, cache->blkSize, cacheToNowhere);
             i=set->set_size_in_blocks;
-	    set->times[i] = clock();
+			set->times[i] = clock();
 	    break;
         }
         else
@@ -230,8 +232,8 @@ void searchCache(cache_Type* cache, int aluResult, stateType* state)
 	    
             printAction(aluResult, cache->blkSize, memoryToCache);
             printf("Befor mem to cache in non-dirty search cache\n");
-	    memToCache(cache, state, aluResult); //move it to cache then update times.
-	    set->times[i] = clock(); //this should update the times when something is put into the cache.
+			memToCache(cache, state, aluResult); //move it to cache then update times.
+			set->times[i] = clock(); //this should update the times when something is put into the cache.
         }
 	free(block);
     }
@@ -261,9 +263,9 @@ void memToCache(cache_Type* cache, stateType* state, int aluResult)
 	printf("After check valid\n");
 
 	int LRU = set->lru;
-    	block_Type* oldBlock = &set->block[LRU]; //Initialize block types that we will use. newBlock will overwrite oldBlock
-    	block_Type newBlock; //this is the block that is LRU (one we will replace).
-    	int mem_start_location = find_mem_start(aluResult,cache); //this is the start of the block in memory.
+    block_Type* oldBlock = &set->block[LRU]; //Initialize block types that we will use. newBlock will overwrite oldBlock
+    block_Type newBlock; //this is the block that is LRU (one we will replace).
+    int mem_start_location = find_mem_start(aluResult,cache); //this is the start of the block in memory.
 	printf("Before dirty bit check\n");
     if(oldBlock->dirty == 1) //check if block is dirty AND LRU (then we writeback)
     {
@@ -290,21 +292,21 @@ void memToCache(cache_Type* cache, stateType* state, int aluResult)
             newBlock.addresses[i] = state->mem[mem_start_location];
             mem_start_location++;
         }
-	printf("After for loop\n");
+		printf("After for loop\n");
         newBlock.valid =1;
         newBlock.tag = getTag(aluResult, cache);
         newBlock.dirty = 0;
-	printf("Before get setoffset\n");
-	newBlock.setOffset = getSetOffset(aluResult, cache);
-	newBlock.blockOffset = getBlockOffset(aluResult, cache);
-	printf("After get block offset\n");
+		printf("Before get setoffset\n");
+		newBlock.setOffset = getSetOffset(aluResult, cache);
+		newBlock.blockOffset = getBlockOffset(aluResult, cache);
+		printf("After get block offset\n");
         set->block[LRU] = newBlock;
-	printf("Before set LRU clock\n");
-	set->times[LRU] = clock();
-	printf("After set LRU\n");
+		printf("Before set LRU clock\n");
+		set->times[LRU] = clock();
+		printf("After set LRU\n");
     }
    printf("At the end of MemtoCache\n");
-
+   free(oldBlock);
 }
 
 void cachToMemory(int aluResult, cache_Type* cache, stateType* state, block_Type* block)
@@ -331,8 +333,7 @@ void regToCache(stateType* state, cache_Type* cache,int regA, int aluResult){
     set_Type* set = &cache->cacheArray[setOffset]; //this grabs the SET that our memory should be in.
 	int blockOffset = getBlockOffset(aluResult, cache);
 	
-    block_Type* oldBlock; //Initialize block types that we will use. newBlock will overwrite oldBlock
-    oldBlock = &set->block[blockOffset]; //this is the block that is LRU (one we will replace).
+    block_Type* oldBlock = &set->block[blockOffset];; //Initialize block types that we will use. newBlock will overwrite oldBlock
     int mem_line = aluResult%cache->blkSize; //this is the start of the block in memory.
 	oldBlock->addresses[mem_line] = regA;
 	oldBlock->dirty = 1;
@@ -503,7 +504,7 @@ int main(int argc, char** argv){
 
     /** Get command line arguments **/
 
-    char* fname;
+    char* fname = (char*)malloc(sizeof(char)*100);;
     FILE* fp = (FILE*)malloc(sizeof(FILE));
    // FILE *fp;
     cache_Type* cache = (cache_Type*)malloc(sizeof(cache_Type));
@@ -513,7 +514,6 @@ int main(int argc, char** argv){
     if(argc == 5){
 		int strsize = strlen(argv[1]);      
 
-        fname = (char*)malloc(strsize);
         fname[0] = '\0';
 
         strcat(fname, argv[1]);
@@ -532,7 +532,7 @@ int main(int argc, char** argv){
         //TODO error check the input
 
         //Takes in the parameters if they are not in the commnad line
-        fname = (char*)malloc(sizeof(char)*100);
+        
 
         printf("\nEnter the machine code program to simulate: ");
         fgets(fname, 100, stdin);
@@ -621,7 +621,7 @@ int main(int argc, char** argv){
 		line_count++;
     }
     fclose(fp);
-	  state->numMemory = line_count;
+	state->numMemory = line_count;
     cache->cacheArray[cache->numSets]; //Initializes how many Sets there will be.
 
     for(int i = 0; i < cache->numSets; i++){
