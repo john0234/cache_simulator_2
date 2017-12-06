@@ -678,7 +678,8 @@ int main(int argc, char** argv){
         */
         set->set_size_in_blocks = cache->assoc;
         set->block[set->set_size_in_blocks];
-        set->times[set->set_size_in_blocks];
+        //set->times[set->set_size_in_blocks];
+		set->lru_queue[set->set_size_in_blocks];
 
         for(int j = 0; j < set->set_size_in_blocks; j++){
             block_Type* block = &set->block[j];
