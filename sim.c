@@ -249,8 +249,7 @@ void memToCache(cache_Type* cache, stateType* state, int aluResult)
 
    // int blk = getBlockOffset(aluResult, cache); //blk is the SET that our memory should be in.
 	int setOffset = getSetOffset(aluResult, cache); //get set offset
-	set_Type* set = (set_Type*)malloc(sizeof(set_Type));
-    	set = &cache->cacheArray[setOffset];//this grabs the SET that our memory should be in.
+	set_Type* set = &cache->cacheArray[setOffset];//this grabs the SET that our memory should be in.
 	findLRU(set); //sets the LRU to the actual LRU
 	
 	printf("After findLRU\n");
@@ -262,9 +261,8 @@ void memToCache(cache_Type* cache, stateType* state, int aluResult)
 	printf("After check valid\n");
 
 	int LRU = set->lru;
-    	block_Type* oldBlock = (block_Type*)malloc(sizeof(block_Type)); //Initialize block types that we will use. newBlock will overwrite oldBlock
-    	block_Type newBlock;
-    	oldBlock = &set->block[LRU]; //this is the block that is LRU (one we will replace).
+    	block_Type* oldBlock = &set->block[LRU]; //Initialize block types that we will use. newBlock will overwrite oldBlock
+    	block_Type newBlock; //this is the block that is LRU (one we will replace).
     	int mem_start_location = find_mem_start(aluResult,cache); //this is the start of the block in memory.
 	printf("Before dirty bit check\n");
     if(oldBlock->dirty == 1) //check if block is dirty AND LRU (then we writeback)
@@ -306,7 +304,7 @@ void memToCache(cache_Type* cache, stateType* state, int aluResult)
 	printf("After set LRU\n");
     }
    printf("At the end of MemtoCache\n");
-   free(oldBlock);
+
 }
 
 void cachToMemory(int aluResult, cache_Type* cache, stateType* state, block_Type* block)
@@ -506,11 +504,7 @@ int main(int argc, char** argv){
     /** Get command line arguments **/
 
     char* fname;
-<<<<<<< HEAD
-	FILE* fp = (FILE*)malloc(sizeof(FILE));
-=======
     FILE* fp = (FILE*)malloc(sizeof(FILE));
->>>>>>> master
    // FILE *fp;
     cache_Type* cache = (cache_Type*)malloc(sizeof(cache_Type));
 
@@ -605,11 +599,9 @@ int main(int argc, char** argv){
     // reset fp to the beginning of the file
 	printf("after mem & reg set");
     rewind(fp);
-<<<<<<< HEAD
     printf("Block size %d", cache->blkSize);
-=======
 
->>>>>>> master
+
     stateType* state = (stateType*)malloc(sizeof(stateType));
 
     state->pc = 0;
@@ -634,8 +626,7 @@ int main(int argc, char** argv){
 
     for(int i = 0; i < cache->numSets; i++){
 
-	set_Type* set = (set_Type*)malloc(sizeof(set_Type));
-        set = &cache->cacheArray[i];
+	set_Type* set = &cache->cacheArray[i];
         set->lru = 0;
         /*
             TODO:**I THINK ITS SOLVED**
@@ -647,8 +638,7 @@ int main(int argc, char** argv){
         set->times[set->set_size_in_blocks];
 
         for(int j = 0; j < set->set_size_in_blocks; j++){
-            block_Type* block = (block_Type*)malloc(sizeof(block_Type));
-	    block = &set->block[j];
+            block_Type* block = &set->block[j];
             block->valid = 0;
             block->dirty = 0;
             block->tag = 0;

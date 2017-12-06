@@ -215,8 +215,8 @@ void memToCache(cache_Type* cache, stateType* state, int aluResult)
     printf("Before dirty bit check\n");
     if(oldBlock->dirty == 1) //check if block is dirty AND LRU (then we writeback)
     {
-
-        //cachToMemory(aluResult, cache, state, oldBlock);
+	free(oldBlock);
+	 //cachToMemory(aluResult, cache, state, oldBlock);
         for(int i=0; i<cache->blkSize; i++)
         {
             newBlock.addresses[i] = state->mem[mem_start_location];
@@ -250,7 +250,7 @@ void memToCache(cache_Type* cache, stateType* state, int aluResult)
         printf("LRU clock: %lu", set->times[LRU]);
     }
     printf("At the end of MemtoCache\n");
-    free(oldBlock);
+
 }
 
 void run(stateType *state, cache_Type *cache) {
