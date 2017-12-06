@@ -37,7 +37,7 @@ typedef struct block_Type{
 
 typedef struct set_Type{
     int set_size_in_blocks; //How many blocks are in our set.
-    block_Type block[]; //Holds the blocks in out set.
+    block_Type block[256]; //Holds the blocks in out set.
     // (TODO: Why is this 256?) We need to put a number in or else we get an error at least on CLion we do.
     int lru; //Holds the integer value of which block in the set is LRU.
     clock_t times[]; //This will hold clock times for each block. Loop through to find LRU...
