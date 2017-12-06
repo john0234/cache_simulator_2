@@ -1,0 +1,12 @@
+lw 1 0 six
+lw 2 0 ten
+lw 3 0 four
+lw 4 0 one
+add 5 4 2
+add 6 5 1
+nand 7 3 6
+halt
+six .fill 6
+ten .fill 10
+four .fill 4
+one .fill 1
