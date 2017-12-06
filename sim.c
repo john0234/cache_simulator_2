@@ -306,7 +306,6 @@ void memToCache(cache_Type* cache, stateType* state, int aluResult)
 		printf("After set LRU\n");
     }
    printf("At the end of MemtoCache\n");
-   free(oldBlock);
 }
 
 void cachToMemory(int aluResult, cache_Type* cache, stateType* state, block_Type* block)
