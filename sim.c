@@ -36,11 +36,12 @@ typedef struct block_Type{
 }block_Type;
 
 typedef struct set_Type{
-    int set_size_in_blocks; //How many blocks are in our set.
-    block_Type block[256]; //Holds the blocks in out set.
+    int set_size_in_blocks; //How many blocks are in our set. 
     // (TODO: Why is this 256?) We need to put a number in or else we get an error at least on CLion we do.
     int lru; //Holds the integer value of which block in the set is LRU.
-    clock_t times[]; //This will hold clock times for each block. Loop through to find LRU...
+    //clock_t times[]; //This will hold clock times for each block. Loop through to find LRU...
+	int lru_queue[set_size_in_blocks];
+	block_Type block[set_size_in_blocks]; //Holds the blocks in out set.
 }set_Type;
 
 typedef struct cache_Type{
@@ -205,6 +206,7 @@ int getBlockOffset(int aluResult, cache_Type* cache)
 
 void searchCache(cache_Type* cache, int aluResult, stateType* state)
 {
+	int found = 0;
 	printf("In search cache\n");
 	/*
 		TODO: figure out this tag shit.
@@ -224,20 +226,23 @@ void searchCache(cache_Type* cache, int aluResult, stateType* state)
         //TODO check dirty bit
             printAction(aluResult, cache->blkSize, cacheToNowhere);
             i=set->set_size_in_blocks;
-			set->times[i] = clock();
-	    break;
+			//set->times[i] = clock();
+			updateLRU(set,i);
+			found = 1;
+			break;
         }
-        else
-        {
-	    
-            printAction(aluResult, cache->blkSize, memoryToCache);
-            printf("Befor mem to cache in non-dirty search cache\n");
-			memToCache(cache, state, aluResult); //move it to cache then update times.
-			set->times[i] = clock(); //this should update the times when something is put into the cache.
-        }
-	free(block);
+	
+		//free(block);
     }
-  free(set);
+	if(found != 1){
+		printAction(aluResult, cache->blkSize, memoryToCache);
+		printf("Befor mem to cache in non-dirty search cache\n");
+		memToCache(cache, state, aluResult); //move it to cache then update times.
+		//set->times[i] = clock(); //this should update the times when something is put into the cache.
+		updateLRU(set, i);
+	}
+	
+  //free(set);
 }
 
 int find_mem_start(int aluResult, cache_Type* cache){
@@ -249,10 +254,11 @@ void memToCache(cache_Type* cache, stateType* state, int aluResult)
 {
 	printf("In memtoCache\n");
 
-   // int blk = getBlockOffset(aluResult, cache); //blk is the SET that our memory should be in.
+	//int blk = getBlockOffset(aluResult, cache); //blk is the SET that our memory should be in.
 	int setOffset = getSetOffset(aluResult, cache); //get set offset
 	set_Type* set = &cache->cacheArray[setOffset];//this grabs the SET that our memory should be in.
-	findLRU(set); //sets the LRU to the actual LRU
+	//findLRU(set); //sets the LRU to the actual LRU
+	//updateLRU(set,blk);
 	
 	printf("After findLRU\n");
 
@@ -281,8 +287,15 @@ void memToCache(cache_Type* cache, stateType* state, int aluResult)
         newBlock.dirty = 0;
 		newBlock.setOffset = getSetOffset(aluResult, cache);
 		newBlock.blockOffset = getBlockOffset(aluResult, cache);
-        set->block[LRU] = newBlock;
-		set->times[LRU] = clock();
+		//set->block[LRU] = newBlock;  ********This might have been our issue*************
+        set->block[LRU]->valid = newBlock.valid;
+		set->block[LRU]->tag = newBlock.tag;
+		set->block[LRU]->dirty = newBlock.dirty;
+		set->block[LRU]->setOffset = newBlock.setOffset;
+		set->block[LRU]->blockOffset = newBlock.blockOffset;
+		
+		//set->times[LRU] = clock();
+		updateLRU(set,newBlock.blockOffset); //using our new priority queue
     }
     else
     {	
@@ -300,9 +313,15 @@ void memToCache(cache_Type* cache, stateType* state, int aluResult)
 		newBlock.setOffset = getSetOffset(aluResult, cache);
 		newBlock.blockOffset = getBlockOffset(aluResult, cache);
 		printf("After get block offset\n");
-        set->block[LRU] = newBlock;
+        //set->block[LRU] = newBlock; ********This might have been our issue*************
 		printf("Before set LRU clock\n");
-		set->times[LRU] = clock();
+		//set->times[LRU] = clock();
+		set->block[LRU]->valid = newBlock.valid;
+		set->block[LRU]->tag = newBlock.tag;
+		set->block[LRU]->dirty = newBlock.dirty;
+		set->block[LRU]->setOffset = newBlock.setOffset;
+		set->block[LRU]->blockOffset = newBlock.blockOffset;
+		updateLRU(set,newBlock.blockOffset);
 		printf("After set LRU\n");
     }
    printf("At the end of MemtoCache\n");
@@ -336,7 +355,8 @@ void regToCache(stateType* state, cache_Type* cache,int regA, int aluResult){
     int mem_line = aluResult%cache->blkSize; //this is the start of the block in memory.
 	oldBlock->addresses[mem_line] = regA;
 	oldBlock->dirty = 1;
-	set->times[blockOffset] = clock();
+	//set->times[blockOffset] = clock();
+	updateLRU(set,blockOffset);
 
 	/*
 		TODO:
@@ -484,6 +504,7 @@ int findInvalidBlock(set_Type* set){
 	return ret;
 }
 
+/*
 void findLRU(set_Type* set){
 
     clock_t holder = set->times[0];
@@ -497,6 +518,29 @@ void findLRU(set_Type* set){
         }
     }
     set->lru = lru;
+}
+*/
+
+void updateLRU(set_Type* set, int used_block){
+	
+	int newArr[set->set_size_in_blocks];
+	newArr[0] = used_block;
+	int j = 1;
+	for(int i = 0; i < set->set_size_in_blocks; i ++){
+		
+		if(set->lru_queue[i] != used_block){
+			newArr[j] = set->lru_queue[i];
+		}
+		j++;
+	}
+	
+	for(int i = 0; i < set->set_size_in_blocks; i++){
+		
+		set->lru_queue[i] = newArr[i];
+	}
+	
+	set->lru = set->lru_queue[set_size_in_blocks - 1];
+	
 }
 
 int main(int argc, char** argv){
@@ -643,7 +687,8 @@ int main(int argc, char** argv){
             block->tag = 0;
             block->block_size_in_words = cache->blkSize; //initiallizes blocksize(block) to blocksize(cache).
 
-            set->times[j] = clock(); //Sets each time to clock time (just so its set to something);
+            //set->times[j] = clock(); //Sets each time to clock time (just so its set to something);
+			set->lru_queue[j] = 0;
 
             for(int k = 0; k < block->block_size_in_words; k++){
                 block->addresses[k] = 0; //initiallizes all of the addresses to 0 to begin with.
