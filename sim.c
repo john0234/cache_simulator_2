@@ -553,7 +553,10 @@ int main(int argc, char** argv){
     char* fname = (char*)malloc(sizeof(char)*100);;
     FILE* fp = (FILE*)malloc(sizeof(FILE));
     // FILE *fp;
-    cache_Type* cache = (cache_Type*)malloc(sizeof(cache_Type));
+	int blockSize;
+	int numbrSets;
+	int associt;
+   
 
 
     //TODO error check the input
@@ -599,30 +602,36 @@ int main(int argc, char** argv){
         }
 
         printf("\nEnter the block size of the cache (in words): ");
-        scanf("%d", &cache->blkSize);
-        while(cache->blkSize > 256 || cache->blkSize <1)
+        scanf("%d", &blockSize);
+        while(blockSize> 256 || blockSize <1)
         {
             printf("\nThe block size you entered is not within the parameters (1-256). Please enter again: ");
-            scanf("%d",&cache->blkSize);
+            scanf("%d",&blockSize);
         }
 
         printf("\nEnter the number of sets in the cache (1 or greater): ");
-        scanf("%d", &cache->numSets);
-        while(cache->numSets < 1)
+        scanf("%d", &numbrSets);
+        while(numbrSets < 1)
         {
             printf("\nThe number you entered is not in the range (1 or greater). Please enter again: ");
-            scanf("%d", &cache->numSets);
+            scanf("%d", &numbrSets);
         }
 
         printf("\nEnter the associativity of the cache (1 or greater): ");
-        scanf("%d", &cache->assoc);
-        while(cache->assoc < 1)
+        scanf("%d", &associt);
+        while(associt < 1)
         {
             printf("\nThe number you entered is not in the range (1 or greater). Please enter again: ");
-            scanf("%d", &cache->assoc);
+            scanf("%d", &associt);
         }
         printf("end of else\n");
     }//else if
+	
+	
+	 cache_Type* cache = (cache_Type*)malloc(sizeof(cache_Type) + numbrSets * sizeof(set_Type) );
+	 cache->blkSize = blockSize;
+	 cache->numSets = numbrSets;
+	 cache->assoc = associt;
     //Take in a file
     // fname[strlen(fname)-1] = '\0';// gobble up the \n with a \0
 
@@ -669,13 +678,13 @@ int main(int argc, char** argv){
     fclose(fp);
     state->numMemory = line_count;
    // cache->cacheArray[cache->numSets]; //Initializes how many Sets there will be.
-    cache->cacheArray = malloc(cache->numSets * sizeof(set_Type));
+    //cache->cacheArray = malloc(cache->numSets * sizeof(set_Type));
 
 
     for(int i = 0; i < cache->numSets; i++){
 
-        set_Type* set = (set_Type*)malloc(sizeof(set_Type));
-        set = &cache->cacheArray[i];
+        set_Type* set = (set_Type*)malloc(sizeof(set_Type) + cache->assoc * sizeof(block_Type) + cache->assoc * sizeof(int) );
+        set = cache->cacheArray[i];
         set->lru = 0;
         /*
             TODO:**I THINK ITS SOLVED**
@@ -683,13 +692,13 @@ int main(int argc, char** argv){
              ***We need to figure out how many blocks should be in our set here*** (instead of setting it to 0).
         */
         set->set_size_in_blocks = cache->assoc;
-        set->block = malloc(set_size_in_blocks * sizeof(block_Type));
+       // set->block = malloc(set_size_in_blocks * sizeof(block_Type));
         //set->times[set->set_size_in_blocks];
-        set->lru_queue[set->set_size_in_blocks];
+       // set->lru_queue[set->set_size_in_blocks];
 
         for(int j = 0; j < set->set_size_in_blocks; j++){
-            block_Type* block = (block_Type*)malloc(sizeof(block_Type));
-            block = *set->block[j];
+            block_Type* block = (block_Type*)malloc(sizeof(block_Type) + cache->blkSize * sizeof(int));
+            block = set->block[j];
             block->valid = 0;
             block->dirty = 0;
             block->tag = 0;
@@ -697,7 +706,7 @@ int main(int argc, char** argv){
 
             //set->times[j] = clock(); //Sets each time to clock time (just so its set to something);
             set->lru_queue[j] = 0;
-			block->addresses = malloc(block->block_size_in_words * sizeof(int));
+			//block->addresses = malloc(block->block_size_in_words * sizeof(int));
 			//memset(block->addresses, 0, block->block_size_in_words*sizeof(int));
             for(int k = 0; k < block->block_size_in_words; k++){
                 block->addresses[k] = 0; //initiallizes all of the addresses to 0 to begin with.
