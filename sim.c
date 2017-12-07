@@ -289,11 +289,11 @@ void memToCache(cache_Type* cache, stateType* state, int aluResult)
 		newBlock.setOffset = getSetOffset(aluResult, cache);
 		newBlock.blockOffset = getBlockOffset(aluResult, cache);
 		//set->block[LRU] = newBlock;  ********This might have been our issue*************
-        set->block[LRU]->valid = newBlock.valid;
-		set->block[LRU]->tag = newBlock.tag;
-		set->block[LRU]->dirty = newBlock.dirty;
-		set->block[LRU]->setOffset = newBlock.setOffset;
-		set->block[LRU]->blockOffset = newBlock.blockOffset;
+        set->block[LRU].valid = newBlock.valid;
+		set->block[LRU].tag = newBlock.tag;
+		set->block[LRU].dirty = newBlock.dirty;
+		set->block[LRU].setOffset = newBlock.setOffset;
+		set->block[LRU].blockOffset = newBlock.blockOffset;
 		
 		//set->times[LRU] = clock();
 		updateLRU(set,newBlock.blockOffset); //using our new priority queue
@@ -317,11 +317,11 @@ void memToCache(cache_Type* cache, stateType* state, int aluResult)
         //set->block[LRU] = newBlock; ********This might have been our issue*************
 		printf("Before set LRU clock\n");
 		//set->times[LRU] = clock();
-		set->block[LRU]->valid = newBlock.valid;
-		set->block[LRU]->tag = newBlock.tag;
-		set->block[LRU]->dirty = newBlock.dirty;
-		set->block[LRU]->setOffset = newBlock.setOffset;
-		set->block[LRU]->blockOffset = newBlock.blockOffset;
+		set->block[LRU].valid = newBlock.valid;
+		set->block[LRU].tag = newBlock.tag;
+		set->block[LRU].dirty = newBlock.dirty;
+		set->block[LRU].setOffset = newBlock.setOffset;
+		set->block[LRU].blockOffset = newBlock.blockOffset;
 		updateLRU(set,newBlock.blockOffset);
 		printf("After set LRU\n");
     }
