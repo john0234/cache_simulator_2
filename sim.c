@@ -572,9 +572,9 @@ int main(int argc, char** argv){
             return -1;
         }
 
-        cache->blkSize =(int)argv[2];
-        cache->numSets =(int)argv[3];
-        cache->assoc =(int)argv[4];
+        blockSize =(int)argv[2];
+        numbrSets =(int)argv[3];
+        associt =(int)argv[4];
 
     }
     else{
