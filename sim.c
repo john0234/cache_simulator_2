@@ -40,8 +40,8 @@ typedef struct set_Type{
     // (TODO: Why is this 256?) We need to put a number in or else we get an error at least on CLion we do.
     int lru; //Holds the integer value of which block in the set is LRU.
     //clock_t times[]; //This will hold clock times for each block. Loop through to find LRU...
-	int lru_queue[set_size_in_blocks];
-	block_Type block[set_size_in_blocks]; //Holds the blocks in out set.
+	block_Type block[256]; //Holds the blocks in out set.
+	int lru_queue[];
 }set_Type;
 
 typedef struct cache_Type{
@@ -238,8 +238,9 @@ void searchCache(cache_Type* cache, int aluResult, stateType* state)
 		printAction(aluResult, cache->blkSize, memoryToCache);
 		printf("Befor mem to cache in non-dirty search cache\n");
 		memToCache(cache, state, aluResult); //move it to cache then update times.
+		int blockOffset = getBlockOffset(aluResult,cache);
 		//set->times[i] = clock(); //this should update the times when something is put into the cache.
-		updateLRU(set, i);
+		updateLRU(set, blockOffset);
 	}
 	
   //free(set);
