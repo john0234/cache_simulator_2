@@ -70,6 +70,7 @@ void cachToMemory(int aluResult, cache_Type* cache, stateType* state, block_Type
 int findInvalidBlock(set_Type* set);
 int getSetOffset(int aluResult, cache_Type* cache);
 int getBlockOffset(int aluResult, cache_Type* cache);
+void updateLRU(set_Type* set, int used_block);
 
 //all of our bitwise functions
 int getTag(int aluResult, cache_Type* cache);
