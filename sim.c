@@ -685,7 +685,7 @@ int main(int argc, char** argv){
 
         set_Type* set = (set_Type*)malloc(sizeof(set_Type) + cache->assoc * sizeof(block_Type) + cache->assoc * sizeof(int) );
         set = cache->cacheArray[i];
-        set->lru = 0;
+        *set->lru = 0;
         /*
             TODO:**I THINK ITS SOLVED**
 
