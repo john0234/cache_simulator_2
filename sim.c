@@ -540,7 +540,7 @@ void updateLRU(set_Type* set, int used_block){
 		set->lru_queue[i] = newArr[i];
 	}
 	
-	set->lru = set->lru_queue[set_size_in_blocks - 1];
+	set->lru = set->lru_queue[set->set_size_in_blocks - 1];
 	
 }
 
