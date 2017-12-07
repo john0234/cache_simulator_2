@@ -219,7 +219,7 @@ void searchCache(cache_Type* cache, int aluResult, stateType* state)
     set_Type* set = &(cache->cacheArray[setNum]);
     for(int i=0; i< set->set_size_in_blocks; i++)
     {
-        block_Type* block = &set->block[i];
+        block_Type* block = set->block[i];
         if(block->valid == 1 && block->tag == getTag(aluResult, cache))
         {
             //TODO change the tag function above
@@ -271,7 +271,7 @@ void memToCache(cache_Type* cache, stateType* state, int aluResult)
     printf("After check valid\n");
 
     int LRU = set->lru;
-    block_Type* oldBlock = &set->block[LRU]; //Initialize block types that we will use. newBlock will overwrite oldBlock
+    block_Type* oldBlock = set->block[LRU]; //Initialize block types that we will use. newBlock will overwrite oldBlock
     block_Type newBlock; //this is the block that is LRU (one we will replace).
     int mem_start_location = find_mem_start(aluResult,cache); //this is the start of the block in memory.
     printf("Before dirty bit check\n");
@@ -353,7 +353,7 @@ void regToCache(stateType* state, cache_Type* cache,int regA, int aluResult){
     set_Type* set = &cache->cacheArray[setOffset]; //this grabs the SET that our memory should be in.
     int blockOffset = getBlockOffset(aluResult, cache);
 
-    block_Type* oldBlock = &set->block[blockOffset];; //Initialize block types that we will use. newBlock will overwrite oldBlock
+    block_Type* oldBlock = set->block[blockOffset];; //Initialize block types that we will use. newBlock will overwrite oldBlock
     int mem_line = aluResult%cache->blkSize; //this is the start of the block in memory.
     oldBlock->addresses[mem_line] = regA;
     oldBlock->dirty = 1;
@@ -460,7 +460,7 @@ void run(stateType *state, cache_Type *cache) {
                 int blockOffset = getBlockOffset(aluResult, cache);
                 int mem_line = aluResult%cache->blkSize;
                 set_Type* set = &cache->cacheArray[setOffset];
-                block_Type* block = &set->block[blockOffset];
+                block_Type* block = set->block[blockOffset];
                 int addrs = block->addresses[mem_line];
                 state->reg[regA] = addrs;
             }else if(opcode(instr) == SW){
