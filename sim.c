@@ -52,6 +52,7 @@ typedef struct cache_Type{
 }cache_Type;
 
 typedef struct stateStruct {
+	
     int pc;
     int mem[NUMMEMORY];
     int reg[NUMREGS];
@@ -216,10 +217,10 @@ void searchCache(cache_Type* cache, int aluResult, stateType* state)
 
     // int blkNum = getBlockOffset(aluResult, cache);
     int setNum = getSetOffset(aluResult, cache);
-    set_Type* set = &(cache->cacheArray[setNum]);
+    set_Type* set = (cache->cacheArray[setNum]);
     for(int i=0; i< set->set_size_in_blocks; i++)
     {
-        block_Type* block = &set->block[i];
+        block_Type* block = set->block[i];
         if(block->valid == 1 && block->tag == getTag(aluResult, cache))
         {
             //TODO change the tag function above
@@ -667,7 +668,8 @@ int main(int argc, char** argv){
     }
     fclose(fp);
     state->numMemory = line_count;
-    cache->cacheArray[cache->numSets]; //Initializes how many Sets there will be.
+   // cache->cacheArray[cache->numSets]; //Initializes how many Sets there will be.
+    cache->cacheArray = malloc(cache->numSets * sizeof(set_Type));
 
 
     for(int i = 0; i < cache->numSets; i++){
@@ -681,13 +683,13 @@ int main(int argc, char** argv){
              ***We need to figure out how many blocks should be in our set here*** (instead of setting it to 0).
         */
         set->set_size_in_blocks = cache->assoc;
-        set->block[set->set_size_in_blocks];
+        set->block = malloc(set_size_in_blocks * sizeof(block_Type));
         //set->times[set->set_size_in_blocks];
         set->lru_queue[set->set_size_in_blocks];
 
         for(int j = 0; j < set->set_size_in_blocks; j++){
             block_Type* block = (block_Type*)malloc(sizeof(block_Type));
-            block = &set->block[j];
+            block = *set->block[j];
             block->valid = 0;
             block->dirty = 0;
             block->tag = 0;
@@ -695,7 +697,8 @@ int main(int argc, char** argv){
 
             //set->times[j] = clock(); //Sets each time to clock time (just so its set to something);
             set->lru_queue[j] = 0;
-
+			block->addresses = malloc(block->block_size_in_words * sizeof(int));
+			//memset(block->addresses, 0, block->block_size_in_words*sizeof(int));
             for(int k = 0; k < block->block_size_in_words; k++){
                 block->addresses[k] = 0; //initiallizes all of the addresses to 0 to begin with.
             }
@@ -706,6 +709,8 @@ int main(int argc, char** argv){
     printf("before run\n");
     run(state, cache);
 
+	
+	//free(set);
     free(cache);
     free(state);
     free(fname);
