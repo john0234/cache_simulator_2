@@ -259,7 +259,7 @@ void memToCache(cache_Type* cache, stateType* state, int aluResult)
 
     //int blk = getBlockOffset(aluResult, cache); //blk is the SET that our memory should be in.
     int setOffset = getSetOffset(aluResult, cache); //get set offset
-    set_Type* set = &cache->cacheArray[setOffset];//this grabs the SET that our memory should be in.
+    set_Type* set = cache->cacheArray[setOffset];//this grabs the SET that our memory should be in.
     //findLRU(set); //sets the LRU to the actual LRU
     //updateLRU(set,blk);
 
@@ -272,7 +272,7 @@ void memToCache(cache_Type* cache, stateType* state, int aluResult)
     printf("After check valid\n");
 
     int LRU = set->lru;
-    block_Type* oldBlock = &set->block[LRU]; //Initialize block types that we will use. newBlock will overwrite oldBlock
+    block_Type* oldBlock = set->block[LRU]; //Initialize block types that we will use. newBlock will overwrite oldBlock
     block_Type newBlock; //this is the block that is LRU (one we will replace).
     int mem_start_location = find_mem_start(aluResult,cache); //this is the start of the block in memory.
     printf("Before dirty bit check\n");
@@ -351,10 +351,10 @@ void regToCache(stateType* state, cache_Type* cache,int regA, int aluResult){
     printf("In reg to cache");
     searchCache(cache, aluResult, state);
     int setOffset = getSetOffset(aluResult, cache); //blk is the SET that our memory should be in.
-    set_Type* set = &cache->cacheArray[setOffset]; //this grabs the SET that our memory should be in.
+    set_Type* set = cache->cacheArray[setOffset]; //this grabs the SET that our memory should be in.
     int blockOffset = getBlockOffset(aluResult, cache);
 
-    block_Type* oldBlock = &set->block[blockOffset];; //Initialize block types that we will use. newBlock will overwrite oldBlock
+    block_Type* oldBlock = set->block[blockOffset];; //Initialize block types that we will use. newBlock will overwrite oldBlock
     int mem_line = aluResult%cache->blkSize; //this is the start of the block in memory.
     oldBlock->addresses[mem_line] = regA;
     oldBlock->dirty = 1;
@@ -460,8 +460,8 @@ void run(stateType *state, cache_Type *cache) {
                 int setOffset = getSetOffset(aluResult, cache);
                 int blockOffset = getBlockOffset(aluResult, cache);
                 int mem_line = aluResult%cache->blkSize;
-                set_Type* set = &cache->cacheArray[setOffset];
-                block_Type* block = &set->block[blockOffset];
+                set_Type* set = cache->cacheArray[setOffset];
+                block_Type* block = set->block[blockOffset];
                 int addrs = block->addresses[mem_line];
                 state->reg[regA] = addrs;
             }else if(opcode(instr) == SW){
