@@ -40,7 +40,7 @@ typedef struct set_Type{
     // (TODO: Why is this 256?) We need to put a number in or else we get an error at least on CLion we do.
     int lru; //Holds the integer value of which block in the set is LRU.
     //clock_t times[]; //This will hold clock times for each block. Loop through to find LRU...
-    block_Type* block[256]; //Holds the blocks in out set.
+    block_Type block[256]; //Holds the blocks in out set.
     int lru_queue[];
 }set_Type;
 
@@ -219,7 +219,7 @@ void searchCache(cache_Type* cache, int aluResult, stateType* state)
     set_Type* set = &(cache->cacheArray[setNum]);
     for(int i=0; i< set->set_size_in_blocks; i++)
     {
-        block_Type* block = set->block[i];
+        block_Type* block = &set->block[i];
         if(block->valid == 1 && block->tag == getTag(aluResult, cache))
         {
             //TODO change the tag function above
@@ -271,7 +271,7 @@ void memToCache(cache_Type* cache, stateType* state, int aluResult)
     printf("After check valid\n");
 
     int LRU = set->lru;
-    block_Type* oldBlock = set->block[LRU]; //Initialize block types that we will use. newBlock will overwrite oldBlock
+    block_Type* oldBlock = &set->block[LRU]; //Initialize block types that we will use. newBlock will overwrite oldBlock
     block_Type newBlock; //this is the block that is LRU (one we will replace).
     int mem_start_location = find_mem_start(aluResult,cache); //this is the start of the block in memory.
     printf("Before dirty bit check\n");
@@ -290,11 +290,11 @@ void memToCache(cache_Type* cache, stateType* state, int aluResult)
         newBlock.setOffset = getSetOffset(aluResult, cache);
         newBlock.blockOffset = getBlockOffset(aluResult, cache);
         //set->block[LRU] = newBlock;  ********This might have been our issue*************
-        set->block[LRU]->valid = newBlock.valid;
-        set->block[LRU]->tag = newBlock.tag;
-        set->block[LRU]->dirty = newBlock.dirty;
-        set->block[LRU]->setOffset = newBlock.setOffset;
-        set->block[LRU]->blockOffset = newBlock.blockOffset;
+        set->block[LRU].valid = newBlock.valid;
+        set->block[LRU].tag = newBlock.tag;
+        set->block[LRU].dirty = newBlock.dirty;
+        set->block[LRU].setOffset = newBlock.setOffset;
+        set->block[LRU].blockOffset = newBlock.blockOffset;
 
         //set->times[LRU] = clock();
         updateLRU(set,newBlock.blockOffset); //using our new priority queue
@@ -318,11 +318,11 @@ void memToCache(cache_Type* cache, stateType* state, int aluResult)
         //set->block[LRU] = newBlock; ********This might have been our issue*************
         printf("Before set LRU clock\n");
         //set->times[LRU] = clock();
-        set->block[LRU]->valid = newBlock.valid;
-        set->block[LRU]->tag = newBlock.tag;
-        set->block[LRU]->dirty = newBlock.dirty;
-        set->block[LRU]->setOffset = newBlock.setOffset;
-        set->block[LRU]->blockOffset = newBlock.blockOffset;
+        set->block[LRU].valid = newBlock.valid;
+        set->block[LRU].tag = newBlock.tag;
+        set->block[LRU].dirty = newBlock.dirty;
+        set->block[LRU].setOffset = newBlock.setOffset;
+        set->block[LRU].blockOffset = newBlock.blockOffset;
         updateLRU(set,newBlock.blockOffset);
         printf("After set LRU\n");
     }
@@ -353,7 +353,7 @@ void regToCache(stateType* state, cache_Type* cache,int regA, int aluResult){
     set_Type* set = &cache->cacheArray[setOffset]; //this grabs the SET that our memory should be in.
     int blockOffset = getBlockOffset(aluResult, cache);
 
-    block_Type* oldBlock = set->block[blockOffset];; //Initialize block types that we will use. newBlock will overwrite oldBlock
+    block_Type* oldBlock = &set->block[blockOffset];; //Initialize block types that we will use. newBlock will overwrite oldBlock
     int mem_line = aluResult%cache->blkSize; //this is the start of the block in memory.
     oldBlock->addresses[mem_line] = regA;
     oldBlock->dirty = 1;
@@ -460,7 +460,7 @@ void run(stateType *state, cache_Type *cache) {
                 int blockOffset = getBlockOffset(aluResult, cache);
                 int mem_line = aluResult%cache->blkSize;
                 set_Type* set = &cache->cacheArray[setOffset];
-                block_Type* block = set->block[blockOffset];
+                block_Type* block = &set->block[blockOffset];
                 int addrs = block->addresses[mem_line];
                 state->reg[regA] = addrs;
             }else if(opcode(instr) == SW){
@@ -498,7 +498,7 @@ int findInvalidBlock(set_Type* set){
     int ret = -1;
 
     for(int i = 0; i < set->set_size_in_blocks; i++){
-        if(set->block[i]->valid == 0){
+        if(set->block[i].valid == 0){
             //block is invalid
             return i;
         }
