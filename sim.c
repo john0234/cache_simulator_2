@@ -40,7 +40,7 @@ typedef struct set_Type{
     // (TODO: Why is this 256?) We need to put a number in or else we get an error at least on CLion we do.
     int lru; //Holds the integer value of which block in the set is LRU.
     //clock_t times[]; //This will hold clock times for each block. Loop through to find LRU...
-    block_Type block[256]; //Holds the blocks in out set.
+    block_Type* block[256]; //Holds the blocks in out set.
     int lru_queue[];
 }set_Type;
 
@@ -48,7 +48,7 @@ typedef struct cache_Type{
     int numSets; //Number of sets in our cache;
     int assoc; //The associativity of the cache. 1-blksize?
     int blkSize; //This is number of words in a block;
-    set_Type cacheArray[]; //Array of sets that hold each block;
+    set_Type* cacheArray[]; //Array of sets that hold each block;
 }cache_Type;
 
 typedef struct stateStruct {
@@ -290,11 +290,11 @@ void memToCache(cache_Type* cache, stateType* state, int aluResult)
         newBlock.setOffset = getSetOffset(aluResult, cache);
         newBlock.blockOffset = getBlockOffset(aluResult, cache);
         //set->block[LRU] = newBlock;  ********This might have been our issue*************
-        set->block[LRU].valid = newBlock.valid;
-        set->block[LRU].tag = newBlock.tag;
-        set->block[LRU].dirty = newBlock.dirty;
-        set->block[LRU].setOffset = newBlock.setOffset;
-        set->block[LRU].blockOffset = newBlock.blockOffset;
+        set->block[LRU]->valid = newBlock.valid;
+        set->block[LRU]->tag = newBlock.tag;
+        set->block[LRU]->dirty = newBlock.dirty;
+        set->block[LRU]->setOffset = newBlock.setOffset;
+        set->block[LRU]->blockOffset = newBlock.blockOffset;
 
         //set->times[LRU] = clock();
         updateLRU(set,newBlock.blockOffset); //using our new priority queue
@@ -318,11 +318,11 @@ void memToCache(cache_Type* cache, stateType* state, int aluResult)
         //set->block[LRU] = newBlock; ********This might have been our issue*************
         printf("Before set LRU clock\n");
         //set->times[LRU] = clock();
-        set->block[LRU].valid = newBlock.valid;
-        set->block[LRU].tag = newBlock.tag;
-        set->block[LRU].dirty = newBlock.dirty;
-        set->block[LRU].setOffset = newBlock.setOffset;
-        set->block[LRU].blockOffset = newBlock.blockOffset;
+        set->block[LRU]->valid = newBlock.valid;
+        set->block[LRU]->tag = newBlock.tag;
+        set->block[LRU]->dirty = newBlock.dirty;
+        set->block[LRU]->setOffset = newBlock.setOffset;
+        set->block[LRU]->blockOffset = newBlock.blockOffset;
         updateLRU(set,newBlock.blockOffset);
         printf("After set LRU\n");
     }
@@ -498,7 +498,7 @@ int findInvalidBlock(set_Type* set){
     int ret = -1;
 
     for(int i = 0; i < set->set_size_in_blocks; i++){
-        if(set->block[i].valid == 0){
+        if(set->block[i]->valid == 0){
             //block is invalid
             return i;
         }
@@ -669,9 +669,11 @@ int main(int argc, char** argv){
     state->numMemory = line_count;
     cache->cacheArray[cache->numSets]; //Initializes how many Sets there will be.
 
+
     for(int i = 0; i < cache->numSets; i++){
 
-        set_Type* set = &cache->cacheArray[i];
+        set_Type* set = (set_Type*)malloc(sizeof(set_Type));
+        set = &cache->cacheArray[i];
         set->lru = 0;
         /*
             TODO:**I THINK ITS SOLVED**
@@ -684,7 +686,8 @@ int main(int argc, char** argv){
         set->lru_queue[set->set_size_in_blocks];
 
         for(int j = 0; j < set->set_size_in_blocks; j++){
-            block_Type* block = &set->block[j];
+            block_Type* block = (block_Type*)malloc(sizeof(block_Type));
+            block = &set->block[j];
             block->valid = 0;
             block->dirty = 0;
             block->tag = 0;
@@ -703,6 +706,7 @@ int main(int argc, char** argv){
     printf("before run\n");
     run(state, cache);
 
+    free(cache);
     free(state);
     free(fname);
 
