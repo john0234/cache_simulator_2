@@ -1,0 +1,15 @@
+lw 1 0 seven
+lw 2 0 eight
+lw 3 0 nine
+sw 3 0 seven
+sw 2 0 nine
+sw 1 0 eight
+halt
+seven .fill 7
+noop
+noop
+eight .fill 8
+noop
+noop
+nine .fill 9
+
