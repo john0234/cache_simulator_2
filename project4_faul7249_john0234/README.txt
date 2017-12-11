@@ -10,3 +10,19 @@ Makefile: This is the makefile that will compile the simulator code above. It al
 
 Test Cases:
 
+We have 3 different tests, each are tested using a fully associative cache, a directly mapped cache, and a set associative cache.
+
+Test 1:
+
+This test case consists of a few loads and stores and is meant to test the cache of its ability to use and perform store words.
+
+Test 2:
+
+This test case is meant to test the caches ability to use LRU and to load different values into the cache. This test is mainly ment for testing eviction and loading.
+
+Test 3:
+
+This test case is included to test consecutive loads, then add the values, then to store the added values.
+
+
+
