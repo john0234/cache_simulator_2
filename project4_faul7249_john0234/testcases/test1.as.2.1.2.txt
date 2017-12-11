@@ -9,5 +9,4 @@ seven .fill 7
 noop
 eight .fill 8
 noop
-noop
 nine .fill 9
